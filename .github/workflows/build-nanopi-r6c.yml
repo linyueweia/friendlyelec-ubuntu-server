@@ -36,17 +36,12 @@ jobs:
         cd work/sd-fuse_rk3588
         ./mk-sd-image.sh ubuntu-noble-minimal-arm64
     
-    - name: Rename firmware
+    - name: Rename and collect firmware
       run: |
         cd work/sd-fuse_rk3588/out
+        ls -lh *.img
         mv rk3588-sd-ubuntu-noble-minimal-*.img nanopi-r6c-ubuntu-server-24.04.4.img
         ls -lh *.img
-    
-    - name: Compress firmware
-      run: |
-        cd work/sd-fuse_rk3588/out
-        gzip nanopi-r6c-ubuntu-server-24.04.4.img
-        ls -lh *.img.gz
     
     - name: Upload to Release
       uses: softprops/action-gh-release@v2
@@ -56,18 +51,19 @@ jobs:
         body: |
           ## NanoPi R6C Ubuntu Server 24.04.4 LTS
           
-          - **内核**: Linux 6.1.y (LTS)
-          - **启动方式**: eMMC引导 + NVMe系统
-          - **在线升级**: 支持
+          - 内核: Linux 6.1.y (LTS)
+          - 启动方式: eMMC引导 + NVMe系统
+          - 在线升级: 支持
           
           ### 刷机方法
           1. 先将固件刷入eMMC（USB线刷）
-          2. 从eMMC启动后运行: `sudo bash scripts/migrate-to-nvme.sh`
+          2. 从eMMC启动后运行: sudo bash scripts/migrate-to-nvme.sh
           3. 重启设备，Boot在eMMC，系统在NVMe
           
           ### 注意
           - RK3588S不支持NVMe直接启动（硬件限制）
           - Boot必须保留在eMMC或SD卡上
-        files: work/sd-fuse_rk3588/out/*.img.gz
+        files: work/sd-fuse_rk3588/out/*.img
+        fail_on_unmatched_files: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

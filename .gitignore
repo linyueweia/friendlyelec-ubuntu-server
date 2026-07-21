@@ -1,0 +1,8 @@
+work/
+output/
+*.o
+*.ko
+*.mod.c
+*.order
+*.cmd
+.tmp_versions/

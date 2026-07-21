@@ -1,0 +1,100 @@
+name: Build FriendlyELEC Ubuntu Server
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+    inputs:
+      device:
+        description: '目标设备'
+        required: true
+        default: 'nanopc-t4'
+        type: choice
+        options:
+        - nanopc-t4
+        - nanopi-r6c
+
+jobs:
+  build-nanopc-t4:
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'push' || github.event.inputs.device == 'nanopc-t4'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        sudo -S -p '' apt-get update
+        sudo -S -p '' apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+          bc bison flex libssl-dev make libncurses-dev u-boot-tools \
+          qemu-user-static libarchive-dev
+    
+    - name: Clone sd-fuse_rk3399 (kernel 6.6.y)
+      run: git clone --depth 1 -b kernel-6.6.y https://github.com/friendlyarm/sd-fuse_rk3399.git work/sd-fuse_rk3399
+    
+    - name: Download Ubuntu Noble 24.04 images
+      run: |
+        cd work/sd-fuse_rk3399
+        wget -q https://downloads.friendlyelec.com/os-images/rk3399/images/ubuntu-noble-minimal-arm64-images-*.tgz
+        tar xvzf ubuntu-noble-minimal-arm64-images-*.tgz
+    
+    - name: Build SD image
+      run: |
+        cd work/sd-fuse_rk3399
+        ./mk-sd-image.sh ubuntu-noble-minimal-arm64
+    
+    - name: Rename firmware
+      run: |
+        cd work/sd-fuse_rk3399/out
+        mv rk3399-sd-ubuntu-noble-minimal-*.img nanopc-t4-ubuntu-server-24.04.4.img
+        ls -lh *.img
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nanopc-t4-ubuntu-server-24.04.4
+        path: work/sd-fuse_rk3399/out/*.img
+        retention-days: 30
+
+  build-nanopi-r6c:
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'push' || github.event.inputs.device == 'nanopi-r6c'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        sudo -S -p '' apt-get update
+        sudo -S -p '' apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+          bc bison flex libssl-dev make libncurses-dev u-boot-tools \
+          qemu-user-static libarchive-dev
+    
+    - name: Clone sd-fuse_rk3588 (kernel 6.1.y)
+      run: git clone --depth 1 -b kernel-6.1.y https://github.com/friendlyarm/sd-fuse_rk3588.git work/sd-fuse_rk3588
+    
+    - name: Download Ubuntu Noble 24.04 images
+      run: |
+        cd work/sd-fuse_rk3588
+        wget -q https://downloads.friendlyelec.com/os-images/rk3588/images/ubuntu-noble-minimal-arm64-images-*.tgz
+        tar xvzf ubuntu-noble-minimal-arm64-images-*.tgz
+    
+    - name: Build SD image
+      run: |
+        cd work/sd-fuse_rk3588
+        ./mk-sd-image.sh ubuntu-noble-minimal-arm64
+    
+    - name: Rename firmware
+      run: |
+        cd work/sd-fuse_rk3588/out
+        mv rk3588-sd-ubuntu-noble-minimal-*.img nanopi-r6c-ubuntu-server-24.04.4.img
+        ls -lh *.img
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nanopi-r6c-ubuntu-server-24.04.4
+        path: work/sd-fuse_rk3588/out/*.img
+        retention-days: 30

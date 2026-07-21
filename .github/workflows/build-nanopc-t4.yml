@@ -2,12 +2,8 @@ name: Build NanoPC-T4 Ubuntu Server
 
 on:
   push:
-    tags:
-      - 't4-v*'
+    branches: [ master, main ]
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   build:
@@ -20,9 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo -S -p '' apt-get update
-        sudo -S -p '' apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
-          bc bison flex libssl-dev make libncurses-dev u-boot-tools \
-          qemu-user-static libarchive-dev
+        sudo -S -p '' apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu bc bison flex libssl-dev make libncurses-dev u-boot-tools qemu-user-static libarchive-dev
     
     - name: Clone sd-fuse_rk3399 (kernel 6.6.y)
       run: git clone --depth 1 -b kernel-6.6.y https://github.com/friendlyarm/sd-fuse_rk3399.git work/sd-fuse_rk3399
@@ -44,22 +38,9 @@ jobs:
         mv rk3399-sd-ubuntu-noble-core-*.img nanopc-t4-ubuntu-server-24.04.4.img
         ls -lh *.img
     
-    - name: Compress firmware
-      run: |
-        cd work/sd-fuse_rk3399/out
-        gzip *.img
-        ls -lh *.img.gz
-    
-    - name: Upload to Release
-      uses: softprops/action-gh-release@v2
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
       with:
-        tag_name: ${{ github.ref_name }}
-        name: "NanoPC-T4 Ubuntu Server 24.04.4"
-        body: |
-          ## NanoPC-T4 Ubuntu Server 24.04.4 LTS
-          
-          - 内核: Linux 6.6.y (LTS)
-          - 刷机: 直接用写盘工具写入NVMe硬盘，插上就能启动
-        files: work/sd-fuse_rk3399/out/*.img.gz
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: nanopc-t4-ubuntu-server-24.04.4
+        path: work/sd-fuse_rk3399/out/*.img
+        retention-days: 30

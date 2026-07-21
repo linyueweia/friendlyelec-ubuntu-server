@@ -26,18 +26,18 @@ jobs:
     - name: Download Ubuntu Noble 24.04 images
       run: |
         cd work/sd-fuse_rk3399
-        wget -q https://downloads.friendlyelec.com/os-images/rk3399/images/ubuntu-noble-minimal-arm64-images-20260717.tgz
-        tar xvzf ubuntu-noble-minimal-arm64-images-20260717.tgz
+        wget -q https://downloads.friendlyelec.com/os-images/rk3399/images/ubuntu-noble-core-arm64-images-20260421.tgz
+        tar xvzf ubuntu-noble-core-arm64-images-20260421.tgz
     
     - name: Build SD image
       run: |
         cd work/sd-fuse_rk3399
-        ./mk-sd-image.sh ubuntu-noble-minimal-arm64
+        ./mk-sd-image.sh ubuntu-noble-core-arm64
     
     - name: Rename firmware
       run: |
         cd work/sd-fuse_rk3399/out
-        mv rk3399-sd-ubuntu-noble-minimal-*.img nanopc-t4-ubuntu-server-24.04.4.img
+        mv rk3399-sd-ubuntu-noble-core-*.img nanopc-t4-ubuntu-server-24.04.4.img
         ls -lh *.img
     
     - name: Upload artifacts

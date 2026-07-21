@@ -2,8 +2,12 @@ name: Build NanoPC-T4 Ubuntu Server
 
 on:
   push:
-    branches: [ master, main ]
+    tags:
+      - 't4-v*'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -38,9 +42,26 @@ jobs:
         mv rk3399-sd-ubuntu-noble-core-*.img nanopc-t4-ubuntu-server-24.04.4.img
         ls -lh *.img
     
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v2
       with:
-        name: nanopc-t4-ubuntu-server-24.04.4
-        path: work/sd-fuse_rk3399/out/*.img
-        retention-days: 30
+        tag_name: ${{ github.ref_name }}
+        name: "NanoPC-T4 Ubuntu Server ${{ github.ref_name }}"
+        body: |
+          ## NanoPC-T4 Ubuntu Server 24.04.4 LTS
+          
+          - **内核**: Linux 6.6.y (LTS)
+          - **启动方式**: eMMC引导 + NVMe系统
+          - **在线升级**: 支持
+          
+          ### 刷机方法
+          1. 先将固件刷入eMMC（USB线刷）
+          2. 从eMMC启动后运行: `sudo bash scripts/migrate-to-nvme.sh`
+          3. 重启设备，Boot在eMMC，系统在NVMe
+          
+          ### 注意
+          - RK3399不支持NVMe直接启动（硬件限制）
+          - Boot必须保留在eMMC或SD卡上
+        files: work/sd-fuse_rk3399/out/*.img
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

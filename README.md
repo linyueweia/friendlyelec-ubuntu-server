@@ -25,15 +25,7 @@ sudo -S -p '' ./build.sh nanopc-t4
 sudo -S -p '' ./build.sh nanopi-r6c
 ```
 
-### 本地编译
-
-```bash
-git clone https://github.com/linyueweia/friendlyelec-ubuntu-server.git
-cd friendlyelec-ubuntu-server
-sudo -S -p '' ./build.sh nanopc-t4  # 或 nanopi-r6c
-```
-
-## 刷机方法
+## 刷机方法（NVMe启动）
 
 直接将固件用写盘工具写入NVMe硬盘，插上就能启动。不需要SD卡，前提是需要动eMMC（清空eMMC后才能从NVMe启动）。
 

@@ -2,8 +2,12 @@ name: Build NanoPi R6C Ubuntu Server
 
 on:
   push:
-    branches: [ master, main ]
+    tags:
+      - 'r6c-v*'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -23,7 +27,7 @@ jobs:
     - name: Clone sd-fuse_rk3588 (kernel 6.1.y)
       run: git clone --depth 1 -b kernel-6.1.y https://github.com/friendlyarm/sd-fuse_rk3588.git work/sd-fuse_rk3588
     
-    - name: Download Ubuntu Noble 24.04 images
+    - name: Download Ubuntu Noble Minimal (Server版)
       run: |
         cd work/sd-fuse_rk3588
         wget -q https://downloads.friendlyelec.com/os-images/rk3588/images/ubuntu-noble-minimal-arm64-images-20260717.tgz
@@ -40,9 +44,22 @@ jobs:
         mv rk3588-sd-ubuntu-noble-minimal-*.img nanopi-r6c-ubuntu-server-24.04.4.img
         ls -lh *.img
     
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+    - name: Compress firmware
+      run: |
+        cd work/sd-fuse_rk3588/out
+        gzip *.img
+        ls -lh *.img.gz
+    
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v2
       with:
-        name: nanopi-r6c-ubuntu-server-24.04.4
-        path: work/sd-fuse_rk3588/out/*.img
-        retention-days: 30
+        tag_name: ${{ github.ref_name }}
+        name: "NanoPi R6C Ubuntu Server 24.04.4"
+        body: |
+          ## NanoPi R6C Ubuntu Server 24.04.4 LTS
+          
+          - 内核: Linux 6.1.y (LTS)
+          - 刷机: 直接用写盘工具写入NVMe硬盘，插上就能启动
+        files: work/sd-fuse_rk3588/out/*.img.gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
